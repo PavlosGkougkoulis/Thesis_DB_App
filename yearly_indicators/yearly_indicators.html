@@ -32,6 +32,7 @@
         th {
             background-color: #007BFF;
             color: white;
+            cursor: pointer;
         }
 
         tr:nth-child(even) {
@@ -61,16 +62,14 @@
         }
 
         .download-button {
-            display: block;
-            width: 200px;
-            margin: 30px auto;
-            padding: 10px;
-            text-align: center;
+            margin: 20px 0;
+            padding: 10px 15px;
             background-color: #28a745;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            font-size: 14px;
         }
 
         .download-button:hover {
@@ -86,6 +85,7 @@
             top: 0;
             width: 100%;
             height: 100%;
+            overflow: auto;
             background-color: rgba(0, 0, 0, 0.4);
             padding-top: 60px;
         }
@@ -127,6 +127,7 @@
             margin-right: 10px;
         }
 
+        /* Modal Footer */
         .modal-footer {
             text-align: right;
         }
@@ -144,6 +145,7 @@
         .close:hover,
         .close:focus {
             color: #000;
+            text-decoration: none;
         }
 
         .modal-footer button {
@@ -154,97 +156,129 @@
             border-radius: 5px;
             cursor: pointer;
             font-size: 16px;
+            transition: background-color 0.3s ease;
         }
 
         .modal-footer button:hover {
             background-color: #218838;
         }
-
-        /* Back Button in Modal */
-        .back-button-modal {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 10px 20px;
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            text-align: center;
-        }
-
-        .back-button-modal:hover {
-            background-color: #0056b3;
-        }
     </style>
+
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
     <script>
         $(document).ready(function () {
-            $('#indicatorsTable').DataTable({
-                paging: true,
-                searching: true,
-                ordering: true,
-                responsive: true,
-                language: {
-                    search: "Filter records:"
+            const csvUrl = "https://raw.githubusercontent.com/PavlosGkougkoulis/Thesis_DB_App/main/yearly_indicators.csv";
+
+            // Fetch CSV data and populate the table
+            $.ajax({
+                url: csvUrl,
+                dataType: "text",
+                success: function (data) {
+                    const rows = data.split("\n").slice(1); // Exclude header row
+                    rows.forEach(row => {
+                        if (row.trim()) {
+                            const cells = row.split(",");
+                            const tableRow = `<tr>${cells.map(cell => `<td>${cell}</td>`).join("")}</tr>`;
+                            $("#indicatorsTable tbody").append(tableRow);
+                        }
+                    });
+
+                    // Initialize DataTable
+                    $("#indicatorsTable").DataTable({
+                        paging: true,
+                        searching: true,
+                        ordering: true,
+                        language: {
+                            search: "Filter:"
+                        }
+                    });
+                },
+                error: function () {
+                    alert("Error loading the CSV file. Please check the URL or file permissions.");
                 }
             });
-        });
 
-        function openModal() {
-            document.getElementById("myModal").style.display = "block";
-        }
-
-        function closeModal() {
-            document.getElementById("myModal").style.display = "none";
-        }
-
-        function goBackToTable() {
-            closeModal();
-        }
-
-        function downloadCSV() {
-            var selectedColumns = [];
-            $('#modalColumns input:checked').each(function() {
-                selectedColumns.push($(this).val());
+            // Show the export modal when the button is clicked
+            $("#exportCsv").click(function () {
+                openModal();
             });
 
-            var csvContent = "data:text/csv;charset=utf-8,";
-            var header = selectedColumns.join(",") + "\n";
-            csvContent += header;
+            // Open the modal to select columns
+            function openModal() {
+                document.getElementById("myModal").style.display = "block";
+            }
 
-            $('#indicatorsTable tbody tr').each(function() {
-                var row = [];
-                $(this).find('td').each(function(index) {
-                    if (selectedColumns.includes($(this).closest('table').find('th').eq(index).text().trim())) {
-                        row.push($(this).text().trim());
+            // Close the modal
+            function closeModal() {
+                document.getElementById("myModal").style.display = "none";
+            }
+
+            // Function to download the CSV with selected columns
+            function downloadCSV() {
+                // Get selected columns from modal (checkboxes)
+                var selectedColumns = [];
+                $('#modalColumns input:checked').each(function() {
+                    selectedColumns.push($(this).val());
+                });
+
+                // Prepare the CSV content
+                var csvContent = "data:text/csv;charset=utf-8,";
+
+                // Add header
+                var header = selectedColumns.join(",") + "\n";
+                csvContent += header;
+
+                // Loop through all table rows (not just visible ones)
+                $('#indicatorsTable tbody tr').each(function() {
+                    var row = [];
+                    $(this).find('td').each(function(index) {
+                        // Add data for the selected columns only
+                        if (selectedColumns.includes($(this).closest('table').find('th').eq(index).text().trim())) {
+                            row.push($(this).text().trim());
+                        }
+                    });
+                    if (row.length > 0) {
+                        csvContent += row.join(",") + "\n";
                     }
                 });
-                if (row.length > 0) {
-                    csvContent += row.join(",") + "\n";
-                }
+
+                // Create a link to download the file
+                var encodedUri = encodeURI(csvContent);
+                var downloadLink = document.createElement('a');
+                downloadLink.setAttribute('href', encodedUri);
+                downloadLink.setAttribute('download', 'indicators.csv');
+                downloadLink.click();
+
+                // Close the modal after download
+                closeModal();
+            }
+
+            // Attach the download action to the download button
+            $("#downloadCsvButton").click(function () {
+                downloadCSV();
             });
 
-            var encodedUri = encodeURI(csvContent);
-            var downloadLink = document.createElement('a');
-            downloadLink.setAttribute('href', encodedUri);
-            downloadLink.setAttribute('download', 'indicators.csv');
-            downloadLink.click();
-
-            closeModal();
-        }
+            // Function to close the modal
+            $("#closeModal").click(function () {
+                closeModal();
+            });
+        });
     </script>
 </head>
 <body>
     <h1>Yearly Indicators</h1>
-    <a href="/" class="back-button">Back to Home</a>
-    <button class="download-button" onclick="openModal()">Download CSV</button>
 
+    <a href="/" class="back-button">Back to Home</a>
+
+    <button id="exportCsv" class="download-button">Download CSV</button>
+
+    <!-- Modal for selecting columns to download -->
     <div id="myModal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closeModal()">&times;</span>
+            <span id="closeModal" class="close">&times;</span>
             <div class="modal-header">
                 <h2>Select Columns to Download</h2>
             </div>
@@ -265,15 +299,13 @@
                 <label><input type="checkbox" value="Seat Belt Infringements" checked> Seat Belt Infringements</label>
                 <label><input type="checkbox" value="Helmet Infringements" checked> Helmet Infringements</label>
             </div>
-            <p style="text-align: center; color: #555;">Note: Only the data currently visible in the table will be downloaded (based on the current pagination and filters).</p>
             <div class="modal-footer">
-                <button onclick="downloadCSV()">Download Selected Columns</button>
-                <button class="back-button-modal" onclick="goBackToTable()">Back to Table</button>
+                <button id="downloadCsvButton">Download Selected Columns</button>
             </div>
         </div>
     </div>
 
-    <table id="indicatorsTable" class="display">
+    <table id="indicatorsTable">
         <thead>
             <tr>
                 <th>Year</th>
@@ -294,6 +326,7 @@
             </tr>
         </thead>
         <tbody>
+            <!-- Dynamic rows will be inserted here -->
         </tbody>
     </table>
 </body>
