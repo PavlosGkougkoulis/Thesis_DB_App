@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yearly Indicators</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f9f9f9;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: #fff;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            text-align: center;
+            padding: 8px;
+        }
+
+        th {
+            background-color: #007BFF;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        tr:hover {
+            background-color: #e0e0e0;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const csvUrl = "https://raw.githubusercontent.com/<your-username>/<your-repo>/main/yearly_indicators.csv";
+
+            // Fetch and parse the CSV file
+            Papa.parse(csvUrl, {
+                download: true,
+                header: true,
+                complete: function (results) {
+                    populateTable(results.data);
+                }
+            });
+
+            // Function to populate the table
+            function populateTable(data) {
+                const tableBody = document.querySelector("#indicatorsTable tbody");
+                data.forEach(row => {
+                    const tr = document.createElement("tr");
+                    for (const key in row) {
+                        const td = document.createElement("td");
+                        td.textContent = row[key];
+                        tr.appendChild(td);
+                    }
+                    tableBody.appendChild(tr);
+                });
+            }
+        });
+    </script>
+</head>
+<body>
+    <h1>Yearly Indicators</h1>
+    <table id="indicatorsTable">
+        <thead>
+            <tr>
+                <th>Year</th>
+                <th>Total GDP</th>
+                <th>GDP Per Capita</th>
+                <th>Unemployment</th>
+                <th>Population</th>
+                <th>Environmental Taxes</th>
+                <th>Vehicles</th>
+                <th>Petrol Consumption</th>
+                <th>Natural Gas Consumption</th>
+                <th>Electricity Consumption</th>
+                <th>Fatalities Per Million Vehicles</th>
+                <th>Speed Infringements</th>
+                <th>Drink & Drive Infringements</th>
+                <th>Seat Belt Infringements</th>
+                <th>Helmet Infringements</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Rows will be dynamically added here -->
+        </tbody>
+    </table>
+</body>
+</html>
