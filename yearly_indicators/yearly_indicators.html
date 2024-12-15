@@ -62,16 +62,14 @@
         }
 
         .download-button {
-            display: block;
-            width: 200px;
-            margin: 30px auto;
-            padding: 10px;
-            text-align: center;
+            margin: 20px 0;
+            padding: 10px 15px;
             background-color: #28a745;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            font-size: 14px;
         }
 
         .download-button:hover {
@@ -80,12 +78,8 @@
     </style>
 
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
     <script>
         $(document).ready(function () {
@@ -105,31 +99,39 @@
                         }
                     });
 
-                    // Initialize DataTable with buttons
+                    // Initialize DataTable
                     $("#indicatorsTable").DataTable({
                         paging: true,
                         searching: true,
                         ordering: true,
-                        dom: 'Bfrtip',
-                        buttons: [
-                            {
-                                extend: 'csvHtml5',
-                                text: 'Download Table as CSV',
-                                className: 'download-button',
-                                title: 'Yearly_Indicators',
-                                exportOptions: {
-                                    columns: ':visible'
-                                }
-                            }
-                        ],
                         language: {
-                            search: "Filter records:"
+                            search: "Filter:"
                         }
                     });
                 },
                 error: function () {
                     alert("Error loading the CSV file. Please check the URL or file permissions.");
                 }
+            });
+
+            // CSV Download button
+            $("#exportCsv").click(function () {
+                fetch(csvUrl)
+                    .then(response => response.text())
+                    .then(data => {
+                        const blob = new Blob([data], { type: "text/csv;charset=utf-8;" });
+                        const link = document.createElement("a");
+                        const url = URL.createObjectURL(blob);
+                        link.setAttribute("href", url);
+                        link.setAttribute("download", "Yearly_Indicators.csv");
+                        link.style.visibility = "hidden";
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    })
+                    .catch(error => {
+                        alert("Error downloading the CSV file.");
+                    });
             });
         });
     </script>
@@ -139,7 +141,9 @@
 
     <a href="/" class="back-button">Back to Home</a>
 
-    <table id="indicatorsTable" class="display" style="width:100%">
+    <button id="exportCsv" class="download-button">Export CSV</button>
+
+    <table id="indicatorsTable" style="width:100%">
         <thead>
             <tr>
                 <th>Year</th>
