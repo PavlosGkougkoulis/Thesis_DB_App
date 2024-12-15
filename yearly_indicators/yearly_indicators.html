@@ -211,7 +211,7 @@
                         return response.text();
                     })
                     .then(csvText => {
-                        const rows = csvText.split('\n').map(row => row.split(','));
+                        const rows = csvText.split('\n').map(row => row.split(',').map(cell => cell.replace(/^"|"$/g, '')));
                         const headers = rows[0];
                         const dataRows = rows.slice(1).filter(row => row.length === headers.length);
                         return dataRows;
@@ -298,7 +298,7 @@
 <body>
     <h1>Yearly Indicators</h1>
 
-    <a href="/" class="back-button">Back to Home</a> <!-- Back to home button -->
+    <a href="https://pavlosgkougkoulis.github.io/Thesis_DB_App/" class="back-button">Back to Home</a> <!-- Back to home button -->
 
     <!-- Download button to open the modal -->
     <button class="download-button" onclick="openModal()">Download CSV</button>
