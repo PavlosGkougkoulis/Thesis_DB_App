@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Download Yearly Indicators Data - Select Columns</title>
+    <title>Yearly Indicators</title>
     <style>
+        /* Styling copied and adjusted from the original code */
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
@@ -30,7 +31,7 @@
         }
 
         th {
-            background-color: #007BFF; /* Blue background for headers */
+            background-color: #007BFF;
             color: white;
             cursor: pointer;
         }
@@ -40,7 +41,7 @@
         }
 
         tr:hover {
-            background-color: #e0e0e0; /* Lighter grey when hovering */
+            background-color: #e0e0e0;
         }
 
         .back-button {
@@ -49,7 +50,7 @@
             margin: 30px auto;
             padding: 10px;
             text-align: center;
-            background-color: #007BFF; /* Blue background for button */
+            background-color: #007BFF;
             color: white;
             border: none;
             border-radius: 5px;
@@ -58,7 +59,7 @@
         }
 
         .back-button:hover {
-            background-color: #0056b3; /* Darker blue when hovering */
+            background-color: #0056b3;
         }
 
         .download-button {
@@ -67,7 +68,7 @@
             margin: 30px auto;
             padding: 10px;
             text-align: center;
-            background-color: #28a745; /* Green background for download button */
+            background-color: #28a745;
             color: white;
             border: none;
             border-radius: 5px;
@@ -75,258 +76,20 @@
         }
 
         .download-button:hover {
-            background-color: #218838; /* Darker green when hovering */
-        }
-
-        /* Modal Styling */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0, 0, 0, 0.4);
-            padding-top: 60px;
-        }
-
-        .modal-content {
-            background-color: #fefefe;
-            margin: 5% auto;
-            padding: 20px;
-            border-radius: 10px;
-            width: 40%;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            animation: fadeIn 0.5s;
-        }
-
-        /* Modal Header */
-        .modal-header {
-            font-size: 1.5em;
-            color: #333;
-            font-weight: 600;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #ddd;
-            padding-bottom: 10px;
-            background-color: #f1f1f1; /* Lighter background for header */
-        }
-
-        /* Modal Body */
-        .modal-body {
-            margin-bottom: 20px;
-            padding-left: 15px;
-            padding-right: 15px;
-        }
-
-        .modal-body label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 16px;
-            color: #555;
-        }
-
-        .modal-body input[type="checkbox"] {
-            margin-right: 10px;
-        }
-
-        /* Modal Footer */
-        .modal-footer {
-            text-align: right;
-        }
-
-        .close {
-            color: #aaa;
-            font-size: 30px;
-            font-weight: bold;
-            position: absolute;
-            top: 15px;
-            right: 25px;
-            cursor: pointer;
-        }
-
-        .close:hover,
-        .close:focus {
-            color: #000;
-            text-decoration: none;
-        }
-
-        .modal-footer button {
-            background-color: #28a745;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background-color 0.3s ease;
-        }
-
-        .modal-footer button:hover {
             background-color: #218838;
         }
-
-        /* Back Button in Modal */
-        .back-button-modal {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 10px 20px;
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            text-align: center;
-        }
-
-        .back-button-modal:hover {
-            background-color: #0056b3;
-        }
-
-        /* Animation */
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
-        }
     </style>
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-    <script>
-                // Load CSV data into the table
-        $(document).ready(function () {
-            Papa.parse("https://raw.githubusercontent.com/PavlosGkougkoulis/Thesis_DB_App/main/yearly_indicators.csv", {
-                download: true,
-                header: true,
-                skipEmptyLines: true,
-                complete: function (results) {
-                    const table = $('#indicatorsTable').DataTable({
-                        data: results.data,
-                        columns: [
-                            { title: "Year", data: "Year" },
-                            { title: "Total GDP", data: "Total GDP" },
-                            { title: "GDP Per Capita", data: "GDP Per Capita" },
-                            { title: "Unemployment", data: "Unemployment" },
-                            { title: "Population", data: "Population" },
-                            { title: "Environmental Taxes", data: "Environmental Taxes" },
-                            { title: "Vehicles", data: "Vehicles" },
-                            { title: "Petrol Consumption", data: "Petrol Consumption" },
-                            { title: "Natural Gas Consumption", data: "Natural Gas Consumption" },
-                            { title: "Electricity Consumption", data: "Electricity Consumption" },
-                            { title: "Fatalities Per Million Vehicles", data: "Fatalities Per Million Vehicles" },
-                            { title: "Speed Infringements", data: "Speed Infringements" },
-                            { title: "Drink & Drive Infringements", data: "Drink & Drive Infringements" },
-                            { title: "Seat Belt Infringements", data: "Seat Belt Infringements" },
-                            { title: "Helmet Infringements", data: "Helmet Infringements" }
-                        ]
-                    });
-                }
-            });
-        });
-
-        // Function to open the modal
-        function openModal() {
-            document.getElementById("myModal").style.display = "block";
-        }
-
-        // Function to close the modal
-        function closeModal() {
-            document.getElementById("myModal").style.display = "none";
-        }
-
-        // Function to go back to the table view (close modal)
-        function goBackToTable() {
-            closeModal();
-        }
-
-        // Function to download the CSV
-        function downloadCSV() {
-            // Get selected columns from modal (checkboxes)
-            var selectedColumns = [];
-            $('#modalColumns input:checked').each(function() {
-                selectedColumns.push($(this).val());
-            });
-
-            // Prepare the CSV content
-            var csvContent = "data:text/csv;charset=utf-8,";
-            var header = selectedColumns.join(",") + "\n";
-            csvContent += header;
-
-            // Loop through all table rows (not just visible ones)
-            $('#indicatorsTable tbody tr').each(function() {
-                var row = [];
-                $(this).find('td').each(function(index) {
-                    // Add data for the selected columns only
-                    if (selectedColumns.includes($(this).closest('table').find('th').eq(index).text().trim())) {
-                        row.push($(this).text().trim());
-                    }
-                });
-                if (row.length > 0) {
-                    csvContent += row.join(",") + "\n";
-                }
-            });
-
-            // Create a link to download the file
-            var encodedUri = encodeURI(csvContent);
-            var downloadLink = document.createElement('a');
-            downloadLink.setAttribute('href', encodedUri);
-            downloadLink.setAttribute('download', 'indicators.csv');
-            downloadLink.click();
-
-            // Close the modal after download
-            closeModal();
-        }
-    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
 </head>
 <body>
     <h1>Yearly Indicators</h1>
 
-    <!-- Back to Home Button (GitHub repo URL) -->
-    <a href="https://pavlosgkougkoulis.github.io/Thesis_DB_App/" class="back-button">Back to Home</a>
+    <a href="/" class="back-button">Back to Home</a>
+    <button class="download-button" onclick="downloadCSV()">Download CSV</button>
 
-    <!-- Download button to open the modal -->
-    <button class="download-button" onclick="openModal()">Download CSV</button>
-
-    <!-- Modal for selecting columns to download -->
-    <div id="myModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal()">&times;</span>
-            <div class="modal-header">
-                <h2>Select Columns to Download</h2>
-            </div>
-            <div id="modalColumns" class="modal-body">
-                <!-- Add checkboxes for column selection -->
-                <label><input type="checkbox" value="Year" checked> Year</label>
-                <label><input type="checkbox" value="Total GDP" checked> Total GDP</label>
-                <label><input type="checkbox" value="GDP Per Capita" checked> GDP Per Capita</label>
-                <label><input type="checkbox" value="Unemployment" checked> Unemployment</label>
-                <label><input type="checkbox" value="Population" checked> Population</label>
-                <label><input type="checkbox" value="Environmental Taxes" checked> Environmental Taxes</label>
-                <label><input type="checkbox" value="Vehicles" checked> Vehicles</label>
-                <label><input type="checkbox" value="Petrol Consumption" checked> Petrol Consumption</label>
-                <label><input type="checkbox" value="Natural Gas Consumption" checked> Natural Gas Consumption</label>
-                <label><input type="checkbox" value="Electricity Consumption" checked> Electricity Consumption</label>
-                <label><input type="checkbox" value="Fatalities Per Million Vehicles" checked> Fatalities Per Million Vehicles</label>
-                <label><input type="checkbox" value="Speed Infringements" checked> Speed Infringements</label>
-                <label><input type="checkbox" value="Drink & Drive Infringements" checked> Drink & Drive Infringements</label>
-                <label><input type="checkbox" value="Seat Belt Infringements" checked> Seat Belt Infringements</label>
-                <label><input type="checkbox" value="Helmet Infringements" checked> Helmet Infringements</label>
-            </div>
-            <p style="text-align: center; color: #555;">Note: Only the data currently visible in the table will be downloaded (based on the current pagination and filters).</p>
-            <div class="modal-footer">
-                <button onclick="downloadCSV()">Download Selected Columns</button>
-                <button class="back-button-modal" onclick="goBackToTable()">Back to Table</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Table for displaying indicators data -->
     <table id="indicatorsTable" class="display">
         <thead>
             <tr>
@@ -348,8 +111,53 @@
             </tr>
         </thead>
         <tbody>
-            <!-- Data will be populated here by JavaScript -->
+            <!-- Data will be dynamically populated -->
         </tbody>
     </table>
+
+    <script>
+        const csvUrl = 'https://raw.githubusercontent.com/PavlosGkougkoulis/Thesis_DB_App/main/yearly_indicators.csv';
+
+        // Fetch and populate the table
+        function populateTable() {
+            Papa.parse(csvUrl, {
+                download: true,
+                header: true,
+                complete: function (results) {
+                    const data = results.data;
+                    const tbody = document.querySelector('#indicatorsTable tbody');
+
+                    data.forEach(row => {
+                        const tr = document.createElement('tr');
+                        Object.values(row).forEach(value => {
+                            const td = document.createElement('td');
+                            td.textContent = value;
+                            tr.appendChild(td);
+                        });
+                        tbody.appendChild(tr);
+                    });
+
+                    // Initialize DataTables after the table is populated
+                    $('#indicatorsTable').DataTable({
+                        paging: true,
+                        searching: true,
+                        ordering: true,
+                        responsive: true,
+                        language: {
+                            search: "Filter records:"
+                        }
+                    });
+                }
+            });
+        }
+
+        // Download CSV functionality
+        function downloadCSV() {
+            window.location.href = csvUrl;
+        }
+
+        // Call the function to populate the table
+        populateTable();
+    </script>
 </body>
 </html>
