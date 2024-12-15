@@ -75,6 +75,93 @@
         .download-button:hover {
             background-color: #218838;
         }
+
+        /* Modal Styling */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 10px;
+            width: 40%;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Modal Header */
+        .modal-header {
+            font-size: 1.5em;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+
+        /* Modal Body */
+        .modal-body {
+            margin-bottom: 20px;
+            padding-left: 15px;
+            padding-right: 15px;
+        }
+
+        .modal-body label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 16px;
+            color: #555;
+        }
+
+        .modal-body input[type="checkbox"] {
+            margin-right: 10px;
+        }
+
+        /* Modal Footer */
+        .modal-footer {
+            text-align: right;
+        }
+
+        .close {
+            color: #aaa;
+            font-size: 30px;
+            font-weight: bold;
+            position: absolute;
+            top: 15px;
+            right: 25px;
+            cursor: pointer;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: #000;
+            text-decoration: none;
+        }
+
+        .modal-footer button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        .modal-footer button:hover {
+            background-color: #218838;
+        }
     </style>
 
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
@@ -114,24 +201,69 @@
                 }
             });
 
-            // CSV Download button
+            // Show the export modal when the button is clicked
             $("#exportCsv").click(function () {
-                fetch(csvUrl)
-                    .then(response => response.text())
-                    .then(data => {
-                        const blob = new Blob([data], { type: "text/csv;charset=utf-8;" });
-                        const link = document.createElement("a");
-                        const url = URL.createObjectURL(blob);
-                        link.setAttribute("href", url);
-                        link.setAttribute("download", "Yearly_Indicators.csv");
-                        link.style.visibility = "hidden";
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                    })
-                    .catch(error => {
-                        alert("Error downloading the CSV file.");
+                openModal();
+            });
+
+            // Open the modal to select columns
+            function openModal() {
+                document.getElementById("myModal").style.display = "block";
+            }
+
+            // Close the modal
+            function closeModal() {
+                document.getElementById("myModal").style.display = "none";
+            }
+
+            // Function to download the CSV with selected columns
+            function downloadCSV() {
+                // Get selected columns from modal (checkboxes)
+                var selectedColumns = [];
+                $('#modalColumns input:checked').each(function() {
+                    selectedColumns.push($(this).val());
+                });
+
+                // Prepare the CSV content
+                var csvContent = "data:text/csv;charset=utf-8,";
+
+                // Add header
+                var header = selectedColumns.join(",") + "\n";
+                csvContent += header;
+
+                // Loop through all table rows (not just visible ones)
+                $('#indicatorsTable tbody tr').each(function() {
+                    var row = [];
+                    $(this).find('td').each(function(index) {
+                        // Add data for the selected columns only
+                        if (selectedColumns.includes($(this).closest('table').find('th').eq(index).text().trim())) {
+                            row.push($(this).text().trim());
+                        }
                     });
+                    if (row.length > 0) {
+                        csvContent += row.join(",") + "\n";
+                    }
+                });
+
+                // Create a link to download the file
+                var encodedUri = encodeURI(csvContent);
+                var downloadLink = document.createElement('a');
+                downloadLink.setAttribute('href', encodedUri);
+                downloadLink.setAttribute('download', 'indicators.csv');
+                downloadLink.click();
+
+                // Close the modal after download
+                closeModal();
+            }
+
+            // Attach the download action to the download button
+            $("#downloadCsvButton").click(function () {
+                downloadCSV();
+            });
+
+            // Function to close the modal
+            $("#closeModal").click(function () {
+                closeModal();
             });
         });
     </script>
@@ -141,9 +273,39 @@
 
     <a href="/" class="back-button">Back to Home</a>
 
-    <button id="exportCsv" class="download-button">Export CSV</button>
+    <button id="exportCsv" class="download-button">Download CSV</button>
 
-    <table id="indicatorsTable" style="width:100%">
+    <!-- Modal for selecting columns to download -->
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <span id="closeModal" class="close">&times;</span>
+            <div class="modal-header">
+                <h2>Select Columns to Download</h2>
+            </div>
+            <div id="modalColumns" class="modal-body">
+                <label><input type="checkbox" value="Year" checked> Year</label>
+                <label><input type="checkbox" value="Total GDP" checked> Total GDP</label>
+                <label><input type="checkbox" value="GDP Per Capita" checked> GDP Per Capita</label>
+                <label><input type="checkbox" value="Unemployment" checked> Unemployment</label>
+                <label><input type="checkbox" value="Population" checked> Population</label>
+                <label><input type="checkbox" value="Environmental Taxes" checked> Environmental Taxes</label>
+                <label><input type="checkbox" value="Vehicles" checked> Vehicles</label>
+                <label><input type="checkbox" value="Petrol Consumption" checked> Petrol Consumption</label>
+                <label><input type="checkbox" value="Natural Gas Consumption" checked> Natural Gas Consumption</label>
+                <label><input type="checkbox" value="Electricity Consumption" checked> Electricity Consumption</label>
+                <label><input type="checkbox" value="Fatalities Per Million Vehicles" checked> Fatalities Per Million Vehicles</label>
+                <label><input type="checkbox" value="Speed Infringements" checked> Speed Infringements</label>
+                <label><input type="checkbox" value="Drink & Drive Infringements" checked> Drink & Drive Infringements</label>
+                <label><input type="checkbox" value="Seat Belt Infringements" checked> Seat Belt Infringements</label>
+                <label><input type="checkbox" value="Helmet Infringements" checked> Helmet Infringements</label>
+            </div>
+            <div class="modal-footer">
+                <button id="downloadCsvButton">Download Selected Columns</button>
+            </div>
+        </div>
+    </div>
+
+    <table id="indicatorsTable">
         <thead>
             <tr>
                 <th>Year</th>
