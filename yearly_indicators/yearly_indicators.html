@@ -194,19 +194,38 @@
             }
         }
     </style>
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <script>
+                // Load CSV data into the table
         $(document).ready(function () {
-            $('#indicatorsTable').DataTable({
-                paging: true,
-                searching: true,  // Built-in search feature of DataTables
-                ordering: true,
-                responsive: true,
-                language: {
-                    search: "Filter records:"
+            Papa.parse("https://raw.githubusercontent.com/PavlosGkougkoulis/Thesis_DB_App/main/yearly_indicators.csv", {
+                download: true,
+                header: true,
+                skipEmptyLines: true,
+                complete: function (results) {
+                    const table = $('#indicatorsTable').DataTable({
+                        data: results.data,
+                        columns: [
+                            { title: "Year", data: "Year" },
+                            { title: "Total GDP", data: "Total GDP" },
+                            { title: "GDP Per Capita", data: "GDP Per Capita" },
+                            { title: "Unemployment", data: "Unemployment" },
+                            { title: "Population", data: "Population" },
+                            { title: "Environmental Taxes", data: "Environmental Taxes" },
+                            { title: "Vehicles", data: "Vehicles" },
+                            { title: "Petrol Consumption", data: "Petrol Consumption" },
+                            { title: "Natural Gas Consumption", data: "Natural Gas Consumption" },
+                            { title: "Electricity Consumption", data: "Electricity Consumption" },
+                            { title: "Fatalities Per Million Vehicles", data: "Fatalities Per Million Vehicles" },
+                            { title: "Speed Infringements", data: "Speed Infringements" },
+                            { title: "Drink & Drive Infringements", data: "Drink & Drive Infringements" },
+                            { title: "Seat Belt Infringements", data: "Seat Belt Infringements" },
+                            { title: "Helmet Infringements", data: "Helmet Infringements" }
+                        ]
+                    });
                 }
             });
         });
@@ -268,7 +287,8 @@
 <body>
     <h1>Yearly Indicators</h1>
 
-    <a href="/" class="back-button">Back to Home</a> <!-- Back to home button -->
+    <!-- Back to Home Button (GitHub repo URL) -->
+    <a href="https://pavlosgkougkoulis.github.io/Thesis_DB_App/" class="back-button">Back to Home</a> <!-- Replace with your actual GitHub repository URL -->
 
     <!-- Download button to open the modal -->
     <button class="download-button" onclick="openModal()">Download CSV</button>
@@ -281,6 +301,7 @@
                 <h2>Select Columns to Download</h2>
             </div>
             <div id="modalColumns" class="modal-body">
+                <!-- Add checkboxes for column selection -->
                 <label><input type="checkbox" value="Year" checked> Year</label>
                 <label><input type="checkbox" value="Total GDP" checked> Total GDP</label>
                 <label><input type="checkbox" value="GDP Per Capita" checked> GDP Per Capita</label>
@@ -305,46 +326,29 @@
         </div>
     </div>
 
+    <!-- Table for displaying indicators data -->
     <table id="indicatorsTable" class="display">
         <thead>
             <tr>
-                <th title="Current Year">Year</th>
-                <th title="Total Yearly GDP in Million Euros">Total GDP</th>
-                <th title="Total Yearly GDP Per Capita">GDP Per Capita</th>
-                <th title="Total Yearly Unemployment in Thousands of People">Unemployment</th>
-                <th title="Total Population of the Current Year">Population</th>
-                <th title="Total Yearly Environmental Taxes in Million Euros">Environmental Taxes</th>
-                <th title="Total Yearly Number of Vehicles Existing">Vehicles</th>
-                <th title="Total Yearly Petrol Consumption in Thousand Tonnes of Oil Equivalent">Petrol Consumption</th>
-                <th title="Total Yearly Natural Gas Consumption in Thousand Tonnes of Oil Equivalent">Natural Gas Consumption</th>
-                <th title="Total Yearly Electricity Consumption in Thousand Tonnes of Oil Equivalent">Electricity Consumption</th>
-                <th title="Total Yearly Fatalities Per Million Vehicles">Fatalities Per Million Vehicles</th>
-                <th title="Total Yearly Speed Infringements">Speed Infringements</th>
-                <th title="Total Yearly Drink & Drive Infringements">Drink & Drive Infringements</th>
-                <th title="Total Yearly Seat Belt Infringements">Seat Belt Infringements</th>
-                <th title="Total Yearly Helmet Infringements">Helmet Infringements</th>
+                <th>Year</th>
+                <th>Total GDP</th>
+                <th>GDP Per Capita</th>
+                <th>Unemployment</th>
+                <th>Population</th>
+                <th>Environmental Taxes</th>
+                <th>Vehicles</th>
+                <th>Petrol Consumption</th>
+                <th>Natural Gas Consumption</th>
+                <th>Electricity Consumption</th>
+                <th>Fatalities Per Million Vehicles</th>
+                <th>Speed Infringements</th>
+                <th>Drink & Drive Infringements</th>
+                <th>Seat Belt Infringements</th>
+                <th>Helmet Infringements</th>
             </tr>
         </thead>
         <tbody>
-            {% for indicator in indicators %}
-            <tr>
-                <td>{{ indicator.year }}</td>
-                <td>{{ indicator.total_gdp }}</td>
-                <td>{{ indicator.gdp_per_capita }}</td>
-                <td>{{ indicator.unemployment }}</td>
-                <td>{{ indicator.population }}</td>
-                <td>{{ indicator.environmental_taxes }}</td>
-                <td>{{ indicator.vehicles }}</td>
-                <td>{{ indicator.petrol_cons }}</td>
-                <td>{{ indicator.ng_cons }}</td>
-                <td>{{ indicator.el_cons }}</td>
-                <td>{{ indicator.fatal_per_million_veh }}</td>
-                <td>{{ indicator.speed_infr }}</td>
-                <td>{{ indicator.drink_infr }}</td>
-                <td>{{ indicator.belt_infr }}</td>
-                <td>{{ indicator.helmet_infr }}</td>
-            </tr>
-            {% endfor %}
+            <!-- Data will be populated here by JavaScript -->
         </tbody>
     </table>
 </body>
