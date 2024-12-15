@@ -45,7 +45,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            const csvUrl = "https://github.com/PavlosGkougkoulis/Thesis_DB_App/blob/main/yearly_indicators.csv";
+            // Use the raw GitHub URL for the CSV file
+            const csvUrl = "https://raw.githubusercontent.com/PavlosGkougkoulis/Thesis_DB_App/main/yearly_indicators.csv";
 
             // Fetch and parse the CSV file
             Papa.parse(csvUrl, {
@@ -53,6 +54,9 @@
                 header: true,
                 complete: function (results) {
                     populateTable(results.data);
+                },
+                error: function (err) {
+                    console.error("Error loading CSV:", err);
                 }
             });
 
