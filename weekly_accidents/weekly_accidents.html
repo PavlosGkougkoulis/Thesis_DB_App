@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yearly Indicators</title>
+    <title>Weekly Accidents</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -40,7 +40,7 @@
         }
 
         tr:hover {
-            background-color: #e0e0e0; /* Lighter grey when hovering */
+            background-color: #e0e0e0;
         }
 
         .back-button {
@@ -199,7 +199,7 @@
 
     <script>
         $(document).ready(function () {
-            const csvUrl = 'https://raw.githubusercontent.com/PavlosGkougkoulis/Thesis_DB_App/main/yearly_indicators.csv';
+            const csvUrl = 'https://raw.githubusercontent.com/PavlosGkougkoulis/Thesis_DB_App/main/weekly_accidents_all.csv';
 
             // Fetch and process CSV data
             function fetchCSVData(url) {
@@ -218,16 +218,23 @@
                     });
             }
 
-            // Populate DataTable
+            // Initial table setup
+            const tableBody = $('#accidentsTable tbody');
+            tableBody.append('<tr><td colspan="3" class="text-center">Loading...</td></tr>');
+
+            // Populate DataTable with data
             fetchCSVData(csvUrl).then(dataRows => {
-                const tableBody = $('#indicatorsTable tbody');
+                // Remove the "Loading..." placeholder row
+                tableBody.empty();
+
+                // Add rows to the table
                 dataRows.forEach(row => {
                     const rowHTML = row.map(cell => `<td>${cell}</td>`).join('');
                     tableBody.append(`<tr>${rowHTML}</tr>`);
                 });
 
                 // Initialize DataTable
-                $('#indicatorsTable').DataTable({
+                $('#accidentsTable').DataTable({
                     paging: true,
                     searching: true,
                     ordering: true,
@@ -256,49 +263,75 @@
             closeModal();
         }
 
-        // Function to download the CSV
+        // Function to download visible data (filtered/paginated)
         function downloadCSV() {
-            // Get selected columns from modal (checkboxes)
             var selectedColumns = [];
-            $('#modalColumns input:checked').each(function() {
+            $('#modalColumns input:checked').each(function () {
                 selectedColumns.push($(this).val());
             });
 
-            // Prepare the CSV content
             var csvContent = "data:text/csv;charset=utf-8,";
             var header = selectedColumns.join(",") + "\n";
             csvContent += header;
 
-            // Loop through all table rows (not just visible ones)
-            $('#indicatorsTable tbody tr').each(function() {
-                var row = [];
-                $(this).find('td').each(function(index) {
-                    // Add data for the selected columns only
-                    if (selectedColumns.includes($(this).closest('table').find('th').eq(index).text().trim())) {
-                        row.push($(this).text().trim());
-                    }
+            // Get all visible rows based on current filtering and pagination
+            $('#accidentsTable').DataTable().rows({ search: 'applied' }).every(function () {
+                var row = this.data();
+                var rowData = [];
+                selectedColumns.forEach(function (col) {
+                    var colIndex = $('#accidentsTable th').index($('th:contains(' + col + ')'));
+                    rowData.push(row[colIndex]);
                 });
-                if (row.length > 0) {
-                    csvContent += row.join(",") + "\n";
-                }
+                csvContent += rowData.join(",") + "\n";
             });
 
-            // Create a link to download the file
             var encodedUri = encodeURI(csvContent);
             var downloadLink = document.createElement('a');
             downloadLink.setAttribute('href', encodedUri);
-            downloadLink.setAttribute('download', 'indicators.csv');
+            downloadLink.setAttribute('download', 'weekly_accidents_visible.csv');
             downloadLink.click();
 
-            // Close the modal after download
+            closeModal();
+        }
+
+        // Function to download the entire dataset (ignoring filters/pagination)
+        function downloadAllCSV() {
+            var selectedColumns = [];
+            $('#modalColumns input:checked').each(function () {
+                selectedColumns.push($(this).val());
+            });
+
+            var csvContent = "data:text/csv;charset=utf-8,";
+            var header = selectedColumns.join(",") + "\n";
+            csvContent += header;
+
+            // Loop through all rows, including those not currently visible (ignoring pagination and filtering)
+            var table = $('#accidentsTable').DataTable();
+            var allData = table.rows().data(); // Get all data, ignoring pagination/filtering
+
+            allData.each(function (row) {
+                var rowData = [];
+                selectedColumns.forEach(function (col) {
+                    var colIndex = $('#accidentsTable th').index($('th:contains(' + col + ')'));
+                    rowData.push(row[colIndex]);
+                });
+                csvContent += rowData.join(",") + "\n";
+            });
+
+            var encodedUri = encodeURI(csvContent);
+            var downloadLink = document.createElement('a');
+            downloadLink.setAttribute('href', encodedUri);
+            downloadLink.setAttribute('download', 'weekly_accidents_all.csv');
+            downloadLink.click();
+
             closeModal();
         }
     </script>
 </head>
 <body>
-    <h1>Yearly Indicators</h1>
+    <h1>Weekly Accidents</h1>
 
-    <a href="https://pavlosgkougkoulis.github.io/Thesis_DB_App/" class="back-button">Back to Home</a> <!-- Back to home button -->
+    <a href="https://pavlosgkougkoulis.github.io/Thesis_DB_App/" class="back-button">Back to Home</a>
 
     <!-- Download button to open the modal -->
     <button class="download-button" onclick="openModal()">Download CSV</button>
@@ -312,54 +345,32 @@
             </div>
             <div id="modalColumns" class="modal-body">
                 <label><input type="checkbox" value="Year" checked> Year</label>
-                <label><input type="checkbox" value="Total GDP" checked> Total GDP</label>
-                <label><input type="checkbox" value="GDP Per Capita" checked> GDP Per Capita</label>
-                <label><input type="checkbox" value="Unemployment" checked> Unemployment</label>
-                <label><input type="checkbox" value="Population" checked> Population</label>
-                <label><input type="checkbox" value="Environmental Taxes" checked> Environmental Taxes</label>
-                <label><input type="checkbox" value="Vehicles" checked> Vehicles</label>
-                <label><input type="checkbox" value="Petrol Consumption" checked> Petrol Consumption</label>
-                <label><input type="checkbox" value="Natural Gas Consumption" checked> Natural Gas Consumption</label>
-                <label><input type="checkbox" value="Electricity Consumption" checked> Electricity Consumption</label>
-                <label><input type="checkbox" value="Fatalities Per Million Vehicles" checked> Fatalities Per Million Vehicles</label>
-                <label><input type="checkbox" value="Speed Infringements" checked> Speed Infringements</label>
-                <label><input type="checkbox" value="Drink & Drive Infringements" checked> Drink & Drive Infringements</label>
-                <label><input type="checkbox" value="Seat Belt Infringements" checked> Seat Belt Infringements</label>
-                <label><input type="checkbox" value="Helmet Infringements" checked> Helmet Infringements</label>
-                <label><input type="checkbox" value="Inflation Rate" checked> Inflation Rate</label>
-                <label><input type="checkbox" value="Gini Index" checked> Gini Index</label>
+                <label><input type="checkbox" value="Month" checked> Month</label>
+                <label><input type="checkbox" value="Week" checked> Week</label>
+                <label><input type="checkbox" value="Accidents" checked> Total Weekly Accidents</label>
+                <label><input type="checkbox" value="Fatalities" checked> Total Weekly Fatalities</label>
+                <p style="text-align: center; color: #555;">Note: Only the data currently visible in the table will be downloaded (based on the current pagination and filters).</p>
             </div>
-            <p style="text-align: center; color: #555;">Note: Only the data currently visible in the table will be downloaded (based on the current pagination and filters).</p>
             <div class="modal-footer">
-                <button onclick="downloadCSV()">Download Selected Columns</button>
+                <button onclick="downloadCSV()">Download Visible Data</button>
+                <button onclick="downloadAllCSV()">Download Entire Data</button>
                 <button class="back-button-modal" onclick="goBackToTable()">Back to Table</button>
             </div>
         </div>
     </div>
 
-    <table id="indicatorsTable" class="display">
+    <table id="accidentsTable" class="display">
         <thead>
             <tr>
                 <th title="Current Year">Year</th>
-                <th title="Total Yearly GDP in Million Euros">Total GDP</th>
-                <th title="Total Yearly GDP Per Capita">GDP Per Capita</th>
-                <th title="Total Yearly Unemployment in Thousands of People">Unemployment</th>
-                <th title="Total Population of the Current Year">Population</th>
-                <th title="Total Yearly Environmental Taxes in Million Euros">Environmental Taxes</th>
-                <th title="Total Yearly Number of Vehicles Existing">Vehicles</th>
-                <th title="Total Yearly Petrol Consumption in Thousand Tonnes of Oil Equivalent">Petrol Consumption</th>
-                <th title="Total Yearly Natural Gas Consumption in Thousand Tonnes of Oil Equivalent">Natural Gas Consumption</th>
-                <th title="Total Yearly Electricity Consumption in Thousand Tonnes of Oil Equivalent">Electricity Consumption</th>
-                <th title="Total Yearly Fatalities Per Million Vehicles">Fatalities Per Million Vehicles</th>
-                <th title="Total Yearly Speed Infringements">Speed Infringements</th>
-                <th title="Total Yearly Drink & Drive Infringements">Drink & Drive Infringements</th>
-                <th title="Total Yearly Seat Belt Infringements">Seat Belt Infringements</th>
-                <th title="Total Yearly Helmet Infringements">Helmet Infringements</th>
-                <th title="Average Yearly Percentage of Inflation Rate ">Inflation Rate</th>
-                <th title="Yearly Gini Index">Gini Index</th>
+                <th title="Current Month">Month</th>
+                <th title="Current Week">Week</th>
+                <th title="Total Weekly Accidents">Total Weekly Accidents</th>
+                <th title="Total Weekly Fatalities">Total Weekly Fatalities</th>
             </tr>
         </thead>
         <tbody>
+            <!-- Data will be populated here -->
         </tbody>
     </table>
 

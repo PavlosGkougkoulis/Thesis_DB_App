@@ -40,7 +40,7 @@
         }
 
         tr:hover {
-            background-color: #e0e0e0; /* Lighter grey when hovering */
+            background-color: #e0e0e0;
         }
 
         .back-button {
@@ -263,42 +263,67 @@
             closeModal();
         }
 
-        // Function to download the CSV
+        // Function to download visible data (filtered/paginated)
         function downloadCSV() {
-            // Get selected columns from modal (checkboxes)
             var selectedColumns = [];
-            $('#modalColumns input:checked').each(function() {
+            $('#modalColumns input:checked').each(function () {
                 selectedColumns.push($(this).val());
             });
 
-            // Prepare the CSV content
             var csvContent = "data:text/csv;charset=utf-8,";
-
             var header = selectedColumns.join(",") + "\n";
             csvContent += header;
 
-            // Loop through all table rows (not just visible ones)
-            $('#accidentsTable tbody tr').each(function() {
-                var row = [];
-                $(this).find('td').each(function(index) {
-                    // Add data for the selected columns only
-                    if (selectedColumns.includes($(this).closest('table').find('th').eq(index).text().trim())) {
-                        row.push($(this).text().trim());
-                    }
+            // Get all visible rows based on current filtering and pagination
+            $('#accidentsTable').DataTable().rows({ search: 'applied' }).every(function () {
+                var row = this.data();
+                var rowData = [];
+                selectedColumns.forEach(function (col) {
+                    var colIndex = $('#accidentsTable th').index($('th:contains(' + col + ')'));
+                    rowData.push(row[colIndex]);
                 });
-                if (row.length > 0) {
-                    csvContent += row.join(",") + "\n";
-                }
+                csvContent += rowData.join(",") + "\n";
             });
 
-            // Create a link to download the file
             var encodedUri = encodeURI(csvContent);
             var downloadLink = document.createElement('a');
             downloadLink.setAttribute('href', encodedUri);
-            downloadLink.setAttribute('download', 'yearly_accidents.csv');
+            downloadLink.setAttribute('download', 'yearly_accidents_visible.csv');
             downloadLink.click();
 
-            // Close the modal after download
+            closeModal();
+        }
+
+        // Function to download the entire dataset (ignoring filters/pagination)
+        function downloadAllCSV() {
+            var selectedColumns = [];
+            $('#modalColumns input:checked').each(function () {
+                selectedColumns.push($(this).val());
+            });
+
+            var csvContent = "data:text/csv;charset=utf-8,";
+            var header = selectedColumns.join(",") + "\n";
+            csvContent += header;
+
+            // Loop through all rows, including those not currently visible (ignoring pagination and filtering)
+            var table = $('#accidentsTable').DataTable();
+            var allData = table.rows().data(); // Get all data, ignoring pagination/filtering
+
+            allData.each(function (row) {
+                var rowData = [];
+                selectedColumns.forEach(function (col) {
+                    var colIndex = $('#accidentsTable th').index($('th:contains(' + col + ')'));
+                    rowData.push(row[colIndex]);
+                });
+                csvContent += rowData.join(",") + "\n";
+            });
+
+            var encodedUri = encodeURI(csvContent);
+            var downloadLink = document.createElement('a');
+            downloadLink.setAttribute('href', encodedUri);
+            downloadLink.setAttribute('download', 'yearly_accidents_all.csv');
+            downloadLink.click();
+
             closeModal();
         }
     </script>
@@ -325,7 +350,8 @@
                 <p style="text-align: center; color: #555;">Note: Only the data currently visible in the table will be downloaded (based on the current pagination and filters).</p>
             </div>
             <div class="modal-footer">
-                <button onclick="downloadCSV()">Download Selected Columns</button>
+                <button onclick="downloadCSV()">Download Visible Data</button>
+                <button onclick="downloadAllCSV()">Download Entire Data</button>
                 <button class="back-button-modal" onclick="goBackToTable()">Back to Table</button>
             </div>
         </div>
