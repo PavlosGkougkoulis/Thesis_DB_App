@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CSV Query Tool</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f9;
+    }
+
+    header {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      text-align: center;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 20px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+
+    .dropdowns {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .dropdowns select {
+      margin: 10px;
+      padding: 10px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    table th, table td {
+      padding: 10px;
+      text-align: left;
+      border: 1px solid #ddd;
+    }
+
+    table th {
+      background-color: #f2f2f2;
+    }
+
+    .sort-controls {
+      display: flex;
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    .sort-controls label {
+      margin-right: 10px;
+      font-weight: bold;
+    }
+
+    .sort-controls select {
+      margin-right: 10px;
+      padding: 5px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>CSV Query Tool</h1>
+  </header>
+  <div class="container">
+    <h2>Select Columns and Combine Data</h2>
+    <div class="dropdowns">
+      <div>
+        <label for="file1">Select File 1:</label>
+        <select id="file1">
+          <option value="weekly_accidents_all">Weekly Accidents</option>
+          <option value="monthly_accidents_all">Monthly Accidents</option>
+          <option value="yearly_accidents_all">Yearly Accidents</option>
+          <option value="yearly_indicators">Yearly Indicators</option>
+        </select>
+        <label for="columns1">Select Columns from File 1:</label>
+        <select id="columns1" multiple>
+          <!-- Dynamically populated -->
+        </select>
+      </div>
+      <div>
+        <label for="file2">Select File 2:</label>
+        <select id="file2">
+          <option value="none">None</option>
+          <option value="weekly_accidents_all">Weekly Accidents</option>
+          <option value="monthly_accidents_all">Monthly Accidents</option>
+          <option value="yearly_accidents_all">Yearly Accidents</option>
+          <option value="yearly_indicators">Yearly Indicators</option>
+        </select>
+        <label for="columns2">Select Columns from File 2:</label>
+        <select id="columns2" multiple>
+          <!-- Dynamically populated -->
+        </select>
+      </div>
+    </div>
+    <div class="sort-controls">
+      <label for="sort-order">Sort Order:</label>
+      <select id="sort-order">
+        <option value="asc">Ascending</option>
+        <option value="desc">Descending</option>
+      </select>
+    </div>
+    <button onclick="queryData()">Fetch and Combine Data</button>
+    <table id="dataTable">
+      <thead></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script>
+    async function fetchCSV(fileName) {
+      const baseURL = "https://raw.githubusercontent.com/PavlosGkougkoulis/Thesis_DB_App/main/";
+      const response = await fetch(baseURL + fileName + ".csv");
+      const text = await response.text();
+      return text.split("\n").map(row => row.split(",").map(cell => cell.replace(/^"|"$/g, ""))); // Remove quotes
+    }
+
+    async function populateColumnDropdown(file, dropdownId) {
+      if (file === "none") return;
+
+      const data = await fetchCSV(file);
+      const headers = data[0];
+
+      const dropdown = document.getElementById(dropdownId);
+      dropdown.innerHTML = "";
+
+      headers.forEach(header => {
+        const option = document.createElement("option");
+        option.value = header;
+        option.textContent = header;
+        dropdown.appendChild(option);
+      });
+    }
+
+    document.getElementById("file1").addEventListener("change", (e) => {
+      populateColumnDropdown(e.target.value, "columns1");
+    });
+
+    document.getElementById("file2").addEventListener("change", (e) => {
+      populateColumnDropdown(e.target.value, "columns2");
+    });
+
+    function populateTable(headers, rows) {
+      const table = document.getElementById("dataTable");
+      const thead = table.querySelector("thead");
+      const tbody = table.querySelector("tbody");
+
+      thead.innerHTML = "";
+      tbody.innerHTML = "";
+
+      // Populate header
+      const headerRow = document.createElement("tr");
+      headers.forEach(header => {
+        const th = document.createElement("th");
+        th.textContent = header;
+        headerRow.appendChild(th);
+      });
+      thead.appendChild(headerRow);
+
+      // Populate rows
+      rows.forEach(row => {
+        const tr = document.createElement("tr");
+        row.forEach(cell => {
+          const td = document.createElement("td");
+          td.textContent = cell || "N/A"; // Fill empty cells with N/A
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+    }
+
+    function repeatValues(data, repeatFactor) {
+      return Array(repeatFactor).fill(data).flat();
+    }
+
+    function alignSecondaryData(secondaryData, targetLength) {
+      const alignedData = [];
+
+      for (let i = 0; i < targetLength; i++) {
+        alignedData.push(secondaryData[Math.floor(i / (targetLength / secondaryData.length))] || Array(secondaryData[0].length).fill("N/A"));
+      }
+
+      return alignedData;
+    }
+
+function mergeData(primaryData, secondaryData, primaryHeaders, secondaryHeaders, keyIndex) {
+  const merged = [];
+  const secondaryMap = new Map();
+
+  secondaryData.forEach(row => {
+    const key = row[keyIndex];
+    secondaryMap.set(key, row);
+  });
+
+  primaryData.forEach(primaryRow => {
+    const year = primaryRow[0]; // Assuming "year" is the first column in primary data
+    const secondaryRow = secondaryMap.get(year) || Array(secondaryHeaders.length).fill("N/A");
+    const mergedRow = [...primaryRow];
+
+    secondaryHeaders.forEach((header, index) => {
+      if (primaryHeaders.includes(header)) {
+        // If the header is a duplicate, skip appending it again
+        mergedRow.push(secondaryRow[index]);
+      } else {
+        // Otherwise, append the unique data from the secondary dataset
+        mergedRow.push(secondaryRow[index]);
+      }
+    });
+
+    merged.push(mergedRow);
+  });
+
+  return merged;
+}
+
+    async function queryData() {
+      const file1 = document.getElementById("file1").value;
+      const file2 = document.getElementById("file2").value;
+
+      const selectedColumns1 = Array.from(document.getElementById("columns1").selectedOptions).map(opt => opt.value);
+      const selectedColumns2 = Array.from(document.getElementById("columns2").selectedOptions).map(opt => opt.value);
+
+      const data1 = await fetchCSV(file1);
+      const headers1 = data1[0];
+      const rows1 = data1.slice(1).filter(row => row.length > 1).map(row => headers1.map((header, index) => selectedColumns1.includes(header) ? row[index] : null));
+
+      if (file2 === "none") {
+        populateTable(selectedColumns1, rows1);
+        return;
+      }
+
+      const data2 = await fetchCSV(file2);
+      const headers2 = data2[0];
+      const rows2 = data2.slice(1).filter(row => row.length > 1).map(row => headers2.map((header, index) => selectedColumns2.includes(header) || header === "year" ? row[index] : null));
+
+      let mergedData;
+      if (file1.includes("weekly") || file1.includes("monthly")) {
+        const repeatFactor = file1.includes("weekly") ? rows1.length : (rows1.length / 12);
+        const alignedSecondaryData = alignSecondaryData(rows2, rows1.length);
+        mergedData = mergeData(rows1, alignedSecondaryData, selectedColumns1, selectedColumns2, 0);
+      } else {
+        mergedData = mergeData(rows1, rows2, selectedColumns1, selectedColumns2, 0);
+      }
+
+      const sortOrder = document.getElementById("sort-order").value;
+      if (sortOrder === "asc") {
+        mergedData.sort((a, b) => a[0].localeCompare(b[0]));
+      } else {
+        mergedData.sort((a, b) => b[0].localeCompare(a[0]));
+      }
+
+      populateTable([...selectedColumns1, ...selectedColumns2.filter(col => col !== "year")], mergedData);
+    }
+  </script>
+</body>
+</html>
